@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GZW_Wolfsamson</title>
+<style>
+  :root{
+    --bg-1: #f7f5f2;
+    --bg-2: #eceae6;
+    --card-bg: rgba(255,255,255,0.62);
+    --card-border: rgba(20,20,20,0.08);
+    --glow: rgba(200,190,180,0.5);
+    --ink: #1c1a18;
+    --ink-soft: #6b655e;
+    --accent: #b08968;
+    --accent-deep: #8a6448;
+    --ring-a: #d8c4ab;
+    --ring-b: #b08968;
+  }
+
+  /* ===== Theme presets ===== */
+  [data-theme="white"]{
+    --bg-1:#ffffff; --bg-2:#f0f0f0; --card-bg: rgba(255,255,255,0.68);
+    --card-border: rgba(20,20,20,0.08); --glow: rgba(190,190,190,0.5);
+    --ink:#1a1a1a; --ink-soft:#6b6b6b;
+    --accent:#9a9a9a; --accent-deep:#6f6f6f; --ring-a:#d9d9d9; --ring-b:#9a9a9a;
+  }
+  [data-theme="gray"]{
+    --bg-1:#dcdcde; --bg-2:#c7c7ca; --card-bg: rgba(255,255,255,0.5);
+    --card-border: rgba(20,20,20,0.12); --glow: rgba(140,140,145,0.5);
+    --ink:#1f1f21; --ink-soft:#54545a;
+    --accent:#6e6e76; --accent-deep:#4d4d54; --ring-a:#b3b3b8; --ring-b:#6e6e76;
+  }
+  [data-theme="black"]{
+    --bg-1:#121212; --bg-2:#232323; --card-bg: rgba(24,24,24,0.55);
+    --card-border: rgba(255,255,255,0.10); --glow: rgba(90,90,90,0.5);
+    --ink:#f1f1f1; --ink-soft:#a8a8a8;
+    --accent:#8a8a8a; --accent-deep:#5c5c5c; --ring-a:#4a4a4a; --ring-b:#8a8a8a;
+  }
+  [data-theme="pink"]{
+    --bg-1:#fdf0f4; --bg-2:#fadbe6; --card-bg: rgba(255,255,255,0.6);
+    --card-border: rgba(160,40,90,0.10); --glow: rgba(240,170,200,0.55);
+    --ink:#2c151f; --ink-soft:#8a5a6c;
+    --accent:#e08bab; --accent-deep:#c86790; --ring-a:#f6c6da; --ring-b:#e08bab;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    background:
+      radial-gradient(circle at 20% 15%, var(--bg-2), transparent 55%),
+      radial-gradient(circle at 80% 85%, var(--bg-2), transparent 55%),
+      linear-gradient(var(--bg-1), var(--bg-1)),
+      url('bg.png') center/cover no-repeat;
+    background-blend-mode: normal, normal, screen, normal;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    overflow:hidden;
+    transition: background .4s ease;
+  }
+
+  .card{
+    position:relative;
+    width:min(360px, 88vw);
+    padding:38px 26px 26px;
+    border-radius:18px;
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    backdrop-filter:blur(16px) saturate(120%);
+    -webkit-backdrop-filter:blur(16px) saturate(120%);
+    box-shadow:0 8px 40px rgba(0,0,0,0.08), 0 0 60px var(--glow);
+    text-align:center;
+    color:var(--ink);
+    overflow:hidden;
+    animation:rise .7s cubic-bezier(.2,.8,.2,1) both;
+    transition: background .4s ease, box-shadow .4s ease, border-color .4s ease;
+  }
+
+  .card::before{
+    content:"";
+    position:absolute;
+    inset:-40%;
+    background:
+      radial-gradient(circle at 30% 20%, var(--ring-a), transparent 55%),
+      radial-gradient(circle at 75% 80%, var(--ring-b), transparent 60%);
+    opacity:.25;
+    animation:drift 14s ease-in-out infinite alternate;
+    z-index:0;
+    pointer-events:none;
+    transition: background .4s ease;
+  }
+  @keyframes drift{
+    0%{ transform:translate(-4%,-2%) rotate(0deg); }
+    100%{ transform:translate(4%,3%) rotate(8deg); }
+  }
+
+  .card > *{ position:relative; z-index:1; }
+
+  @keyframes rise{
+    from{opacity:0; transform:translateY(18px) scale(.97);}
+    to{opacity:1; transform:translateY(0) scale(1);}
+  }
+
+  /* avatar */
+  .avatar-wrap{
+    position:relative;
+    width:110px;
+    height:110px;
+    margin:0 auto 18px;
+    animation:float 4.5s ease-in-out infinite;
+    cursor:pointer;
+  }
+  @keyframes float{
+    0%,100%{ transform:translateY(0); }
+    50%{ transform:translateY(-6px); }
+  }
+  .avatar-ring{
+    position:absolute;
+    inset:-6px;
+    border-radius:50%;
+    background:conic-gradient(from 0deg, var(--ring-b), transparent 30%, transparent 70%, var(--ring-b));
+    filter:blur(2px);
+    animation:spin 6s linear infinite;
+    opacity:.9;
+    transition: background .4s ease;
+  }
+  @keyframes spin{
+    to{ transform:rotate(360deg); }
+  }
+  .avatar{
+    position:absolute;
+    inset:5px;
+    width:100px; height:100px;
+    border-radius:50%;
+    object-fit:cover;
+    border:3px solid rgba(255,255,255,0.85);
+    box-shadow:0 0 22px rgba(0,0,0,0.12);
+    background:var(--bg-2);
+  }
+  .avatar-edit{
+    position:absolute;
+    bottom:2px; right:2px;
+    width:30px; height:30px;
+    border-radius:50%;
+    background:var(--accent);
+    color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    border:2px solid #fff;
+    box-shadow:0 2px 8px rgba(0,0,0,0.2);
+    pointer-events:none;
+  }
+  .avatar-edit svg{ width:14px; height:14px; }
+  #avatarInput{ display:none; }
+
+  .name{
+    font-size:24px;
+    font-weight:700;
+    letter-spacing:.6px;
+    margin-bottom:22px;
+    animation:glowpulse 3.2s ease-in-out infinite;
+  }
+  @keyframes glowpulse{
+    0%,100%{ text-shadow:0 0 8px rgba(0,0,0,0); }
+    50%{ text-shadow:0 0 16px var(--glow); }
+  }
+
+  .socials{
+    display:flex;
+    gap:12px;
+    justify-content:center;
+    margin-bottom:6px;
+  }
+  .social{
+    width:38px; height:38px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(0,0,0,.05);
+    border:1px solid rgba(0,0,0,.08);
+    color:var(--ink);
+    text-decoration:none;
+    opacity:0;
+    animation:fadein .5s ease forwards;
+    transition:transform .18s ease, background .18s ease, box-shadow .18s ease, color .18s ease;
+  }
+  .social:nth-child(1){ animation-delay:.5s; }
+  .social:nth-child(2){ animation-delay:.65s; }
+  .social:nth-child(3){ animation-delay:.8s; }
+  @keyframes fadein{
+    from{ opacity:0; transform:translateY(8px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  .social:hover{
+    transform:translateY(-3px);
+    background:var(--accent);
+    color:#fff;
+    box-shadow:0 6px 16px var(--glow);
+  }
+  .social svg{ width:18px; height:18px; }
+
+  /* top-right controls */
+  .controls{
+    position:absolute;
+    top:14px; right:14px;
+    display:flex;
+    gap:8px;
+    z-index:2;
+  }
+  .icon-btn{
+    width:34px; height:34px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(0,0,0,.05);
+    border:1px solid rgba(0,0,0,.08);
+    color:var(--ink);
+    cursor:pointer;
+    transition:background .18s ease, box-shadow .18s ease, transform .18s ease;
+  }
+  .icon-btn:hover{
+    background:var(--accent);
+    color:#fff;
+    box-shadow:0 4px 14px var(--glow);
+    transform:translateY(-2px);
+  }
+  .icon-btn svg{ width:16px; height:16px; }
+
+  .icon-btn .bar{
+    display:inline-block; width:2.5px; margin:0 1px;
+    background:currentColor; border-radius:2px;
+    animation:eq 0.9s ease-in-out infinite;
+  }
+  .icon-btn.playing .bar{ animation-play-state:running; }
+  .icon-btn:not(.playing) .bar{ animation-play-state:paused; height:4px !important; }
+  .bar:nth-child(1){ animation-delay:0s; }
+  .bar:nth-child(2){ animation-delay:.15s; }
+  .bar:nth-child(3){ animation-delay:.3s; }
+  @keyframes eq{
+    0%,100%{ height:4px; }
+    50%{ height:14px; }
+  }
+
+  /* theme picker popover */
+  .theme-pop{
+    position:absolute;
+    top:54px; right:14px;
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border-radius:14px;
+    padding:10px;
+    display:none;
+    gap:8px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.12);
+    z-index:3;
+  }
+  .theme-pop.open{ display:flex; }
+  .theme-dot{
+    width:26px; height:26px;
+    border-radius:50%;
+    cursor:pointer;
+    border:2px solid rgba(255,255,255,0.9);
+    box-shadow:0 0 0 1px rgba(0,0,0,0.08);
+    transition:transform .15s ease;
+  }
+  .theme-dot:hover{ transform:scale(1.12); }
+  .theme-dot.active{ box-shadow:0 0 0 2px var(--accent); }
+  .theme-dot[data-t="white"]{ background:linear-gradient(135deg,#ffffff,#9a9a9a); }
+  .theme-dot[data-t="gray"]{ background:linear-gradient(135deg,#dcdcde,#4d4d54); }
+  .theme-dot[data-t="black"]{ background:linear-gradient(135deg,#3a3a3a,#0a0a0a); }
+  .theme-dot[data-t="pink"]{ background:linear-gradient(135deg,#fdf0f4,#e08bab); }
+</style>
+</head>
+<body data-theme="white">
+
+  <div class="card">
+    <div class="controls">
+      <button class="icon-btn" id="themeBtn" aria-label="Đổi theme" title="Đổi theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="17.5" cy="10.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="8.5" cy="7.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="6.5" cy="12.5" r="1.5" fill="currentColor" stroke="none"/><path d="M12 22a10 10 0 0 1 0-20c1.5 0 2 1 2 2s-1 1-1 2 1 2 3 2 3-1 3 1a10 10 0 0 1-7 15z"/></svg>
+      </button>
+      <button class="icon-btn" id="musicBtn" aria-label="Bật/tắt nhạc nền" title="Nhạc nền">
+        <span class="bar" style="height:4px"></span>
+        <span class="bar" style="height:4px"></span>
+        <span class="bar" style="height:4px"></span>
+      </button>
+    </div>
+
+    <div class="theme-pop" id="themePop">
+      <div class="theme-dot active" data-t="white" title="Trắng"></div>
+      <div class="theme-dot" data-t="gray" title="Xám"></div>
+      <div class="theme-dot" data-t="black" title="Đen"></div>
+      <div class="theme-dot" data-t="pink" title="Hồng"></div>
+    </div>
+
+    <audio id="bgm" loop></audio>
+
+    <div class="avatar-wrap" id="avatarWrap" title="Bấm để đổi avatar">
+      <div class="avatar-ring"></div>
+      <img class="avatar" id="avatarImg" src="avatar.jpg" alt="avatar">
+      <div class="avatar-edit">
+        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+          <ellipse cx="9" cy="5.5" rx="1.6" ry="4" transform="rotate(-18 9 5.5)"/>
+          <ellipse cx="15" cy="5.5" rx="1.6" ry="4" transform="rotate(18 15 5.5)"/>
+          <circle cx="12" cy="14.5" r="6"/>
+          <circle cx="9.6" cy="13.5" r="0.9" fill="#fff" stroke="none"/>
+          <circle cx="14.4" cy="13.5" r="0.9" fill="#fff" stroke="none"/>
+          <ellipse cx="12" cy="16" rx="0.9" ry="0.7" fill="#fff" stroke="none"/>
+        </svg>
+      </div>
+      <input type="file" id="avatarInput" accept="image/*">
+    </div>
+
+    <div class="name">Thaocte</div>
+
+    <div class="socials">
+      <a class="social" href="https://www.tiktok.com/@twiz.zng_?_r=1&_t=ZS-98WZsWQo6G9" target="_blank" rel="noopener" aria-label="TikTok">
+        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M16.6 5.82c-1.02-.9-1.66-2.19-1.66-3.62h-3.13v13.79c0 1.68-1.36 3.04-3.04 3.04a3.04 3.04 0 0 1-3.04-3.04 3.04 3.04 0 0 1 3.04-3.04c.31 0 .61.05.9.13V9.9a6.2 6.2 0 0 0-.9-.07 6.17 6.17 0 0 0-6.17 6.17A6.17 6.17 0 0 0 8.77 22a6.17 6.17 0 0 0 6.17-6.17V8.7a8.44 8.44 0 0 0 4.94 1.58V7.16c-1.16 0-2.24-.34-3.14-.9a5.4 5.4 0 0 1-.14-.44z"/></svg>
+      </a>
+      <a class="social" href="https://www.instagram.com/twiz.ng?igsh=bThyM28xY2t5djM5" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+      </a>
+      <a class="social" href="https://www.facebook.com/share/1BuSuSPQ9P/" target="_blank" rel="noopener" aria-label="Facebook">
+        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5.02 3.66 9.18 8.44 9.94v-7.03H7.9v-2.91h2.54V9.85c0-2.51 1.49-3.9 3.77-3.9 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.91h-2.34V22c4.78-.76 8.44-4.92 8.44-9.94z"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <script>
+    // ===== Music =====
+    const musicBtn = document.getElementById('musicBtn');
+    const audio = document.getElementById('bgm');
+    audio.volume = 0.5;
+
+    const playlist = ['music1.mp3', 'music2.mp3', 'music3.mp3', 'music4.mp3'];
+    const chosen = playlist[Math.floor(Math.random() * playlist.length)];
+    audio.src = chosen;
+
+    function tryAutoplay(){
+      const p = audio.play();
+      if (p !== undefined) {
+        p.then(() => {
+          musicBtn.classList.add('playing');
+        }).catch(() => {
+          const startOnce = () => {
+            audio.play().then(() => musicBtn.classList.add('playing')).catch(()=>{});
+            document.removeEventListener('click', startOnce);
+            document.removeEventListener('touchstart', startOnce);
+          };
+          document.addEventListener('click', startOnce, { once:true });
+          document.addEventListener('touchstart', startOnce, { once:true });
+        });
+      }
+    }
+    tryAutoplay();
+
+    musicBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (audio.paused) {
+        audio.play().catch(() => {});
+        musicBtn.classList.add('playing');
+      } else {
+        audio.pause();
+        musicBtn.classList.remove('playing');
+      }
+    });
+
+    // ===== Avatar change =====
+    const avatarWrap = document.getElementById('avatarWrap');
+    const avatarInput = document.getElementById('avatarInput');
+    const avatarImg = document.getElementById('avatarImg');
+
+    avatarWrap.addEventListener('click', () => avatarInput.click());
+    avatarInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => { avatarImg.src = ev.target.result; };
+      reader.readAsDataURL(file);
+    });
+
+    // ===== Theme switch =====
+    const themeBtn = document.getElementById('themeBtn');
+    const themePop = document.getElementById('themePop');
+    const dots = document.querySelectorAll('.theme-dot');
+    const body = document.body;
+
+    themeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      themePop.classList.toggle('open');
+    });
+    document.addEventListener('click', () => themePop.classList.remove('open'));
+    themePop.addEventListener('click', (e) => e.stopPropagation());
+
+    dots.forEach(dot => {
+      dot.addEventListener('click', () => {
+        const t = dot.getAttribute('data-t');
+        body.setAttribute('data-theme', t);
+        dots.forEach(d => d.classList.remove('active'));
+        dot.classList.add('active');
+      });
+    });
+  </script>
+
+</body>
+</html>
