@@ -68,29 +68,28 @@
   }
   .card{ position:relative; z-index:1; }
 
-  /* ===== Sparkle particles trôi trên nền ===== */
-  .sparkle{
+  /* ===== Hoa & bướm trôi trên nền (thay sparkle) ===== */
+  .petal{
     position:fixed;
     top:0; left:0;
-    width:3px; height:3px;
-    border-radius:50%;
-    background:#fff;
-    box-shadow:0 0 6px 1px rgba(255,255,255,0.9);
+    font-size: var(--psize, 16px);
+    line-height:1;
     pointer-events:none;
     z-index:0;
     opacity:0;
-    animation-name:sparkle-rise, sparkle-twinkle;
+    filter: drop-shadow(0 0 4px rgba(255,255,255,.5));
+    animation-name:petal-rise, petal-twinkle;
     animation-timing-function:linear, ease-in-out;
     animation-iteration-count:infinite, infinite;
   }
-  @keyframes sparkle-rise{
-    0%{ transform:translate(var(--sx), 110vh); }
-    100%{ transform:translate(var(--sx2), -10vh); }
+  @keyframes petal-rise{
+    0%{ transform:translate(var(--sx), 110vh) rotate(0deg); }
+    100%{ transform:translate(var(--sx2), -10vh) rotate(340deg); }
   }
-  @keyframes sparkle-twinkle{
+  @keyframes petal-twinkle{
     0%, 100%{ opacity:0; }
     10%{ opacity:.9; }
-    50%{ opacity:.3; }
+    50%{ opacity:.55; }
     90%{ opacity:.9; }
   }
 
@@ -305,6 +304,58 @@
   .theme-dot[data-t="gray"]{ background:linear-gradient(135deg,#dcdcde,#4d4d54); }
   .theme-dot[data-t="black"]{ background:linear-gradient(135deg,#3a3a3a,#0a0a0a); }
   .theme-dot[data-t="pink"]{ background:linear-gradient(135deg,#fdf0f4,#e08bab); }
+
+  /* ===== Caption gõ chữ ===== */
+  .caption{
+    margin-top:12px;
+    font-size:12px;
+    color:var(--ink-soft);
+    min-height:16px;
+    text-align:center;
+    letter-spacing:.2px;
+  }
+  .caption .cursor{
+    display:inline-block;
+    width:1px;
+    margin-left:1px;
+    background:var(--ink-soft);
+    animation:blink 0.9s step-end infinite;
+  }
+  @keyframes blink{
+    0%,100%{ opacity:1; }
+    50%{ opacity:0; }
+  }
+
+  /* ===== Nút liên hệ nhanh góc màn hình ===== */
+  .contact-bubble{
+    position:fixed;
+    right:20px;
+    bottom:20px;
+    width:52px; height:52px;
+    border-radius:50%;
+    background:var(--accent);
+    color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    text-decoration:none;
+    box-shadow:0 6px 20px rgba(0,0,0,.25);
+    z-index:5;
+    transition:transform .18s ease, background .3s ease;
+  }
+  .contact-bubble:hover{ transform:scale(1.08); background:var(--accent-deep); }
+  .contact-bubble svg{ width:24px; height:24px; }
+  .contact-bubble::before{
+    content:"";
+    position:absolute;
+    inset:-6px;
+    border-radius:50%;
+    border:2px solid var(--accent);
+    opacity:.6;
+    animation:pulse-ring 2.2s ease-out infinite;
+  }
+  @keyframes pulse-ring{
+    0%{ transform:scale(.9); opacity:.6; }
+    100%{ transform:scale(1.5); opacity:0; }
+  }
 </style>
 </head>
 <body data-theme="white">
@@ -359,7 +410,13 @@
         <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5.02 3.66 9.18 8.44 9.94v-7.03H7.9v-2.91h2.54V9.85c0-2.51 1.49-3.9 3.77-3.9 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.91h-2.34V22c4.78-.76 8.44-4.92 8.44-9.94z"/></svg>
       </a>
     </div>
+
+    <div class="caption" id="caption"></div>
   </div>
+
+  <a class="contact-bubble" href="https://www.facebook.com/share/1BuSuSPQ9P/" target="_blank" rel="noopener" aria-label="Nhắn tin nhanh">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  </a>
 
   <script>
     // ===== Music =====
@@ -368,17 +425,22 @@
     audio.volume = 0.5;
 
     const playlist = ['music1.mp3', 'music2.mp3', 'music3.mp3', 'music4.mp3'];
-    const chosen = playlist[Math.floor(Math.random() * playlist.length)];
-    audio.src = chosen;
+    audio.src = playlist[Math.floor(Math.random() * playlist.length)];
+
+    function syncPlayingState(isPlaying){
+      musicBtn.classList.toggle('playing', isPlaying);
+    }
+    audio.addEventListener('play', () => syncPlayingState(true));
+    audio.addEventListener('pause', () => syncPlayingState(false));
 
     function tryAutoplay(){
       const p = audio.play();
       if (p !== undefined) {
         p.then(() => {
-          musicBtn.classList.add('playing');
+          syncPlayingState(true);
         }).catch(() => {
           const startOnce = () => {
-            audio.play().then(() => musicBtn.classList.add('playing')).catch(()=>{});
+            audio.play().then(() => syncPlayingState(true)).catch(()=>{});
             document.removeEventListener('click', startOnce);
             document.removeEventListener('touchstart', startOnce);
           };
@@ -393,10 +455,8 @@
       e.stopPropagation();
       if (audio.paused) {
         audio.play().catch(() => {});
-        musicBtn.classList.add('playing');
       } else {
         audio.pause();
-        musicBtn.classList.remove('playing');
       }
     });
 
@@ -443,25 +503,38 @@
         dot.classList.add('active');
       });
     });
-    // ===== Sparkle particles =====
-    const sparkleCount = 22;
-    for(let i=0;i<sparkleCount;i++){
+    // ===== Hoa & bướm trôi trên nền =====
+    const petalEmojis = ['🌸','🌼','🦋','✨'];
+    const petalCount = 18;
+    for(let i=0;i<petalCount;i++){
       const s = document.createElement('span');
-      s.className = 'sparkle';
+      s.className = 'petal';
+      s.textContent = petalEmojis[Math.floor(Math.random()*petalEmojis.length)];
       const startX = Math.random()*100 + 'vw';
       const driftX = (Math.random()*100) + 'vw';
-      const dur = (8 + Math.random()*10).toFixed(1) + 's';
-      const twDur = (2 + Math.random()*2.5).toFixed(1) + 's';
-      const delay = (Math.random()*10).toFixed(1) + 's';
+      const dur = (10 + Math.random()*12).toFixed(1) + 's';
+      const twDur = (2.5 + Math.random()*3).toFixed(1) + 's';
+      const delay = (Math.random()*12).toFixed(1) + 's';
       s.style.setProperty('--sx', startX);
       s.style.setProperty('--sx2', driftX);
+      s.style.setProperty('--psize', (12 + Math.random()*10).toFixed(0) + 'px');
       s.style.animationDuration = dur + ', ' + twDur;
       s.style.animationDelay = delay + ', ' + delay;
-      const size = (Math.random()*2 + 2).toFixed(1) + 'px';
-      s.style.width = size;
-      s.style.height = size;
       document.body.appendChild(s);
     }
+
+    // ===== Caption gõ chữ tự động =====
+    const captionEl = document.getElementById('caption');
+    const fullCaption = 'Chào mừng đến với trang cá nhân của Quýt ✿';
+    let cChar = 0;
+    function typeLoop(){
+      cChar++;
+      captionEl.innerHTML = fullCaption.slice(0, cChar) + '<span class="cursor">&nbsp;</span>';
+      if (cChar < fullCaption.length){
+        setTimeout(typeLoop, 65);
+      }
+    }
+    typeLoop();
 
     // ===== Card tilt 3D theo con trỏ =====
     const tiltCard = document.querySelector('.card');
